@@ -1,0 +1,16 @@
+name: Man10TimeAttack
+version: '${project.version}'
+main: yusama125718.man10timeattack.Man10TimeAttack
+api-version: 1.19
+depend: [WorldGuard]
+
+commands:
+  mserial:
+    description: Man10TimeAttack
+    usage: /mta helpでコマンドを確認
+
+permissions:
+  mta.op:
+    default: op
+  mta.p:
+    default: true
