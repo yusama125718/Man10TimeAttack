@@ -3,6 +3,7 @@ package yusama125718.man10timeattack;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
 import java.io.IOException;
@@ -39,7 +40,8 @@ public class Config {
             String name = yml.getString("name");
             String display = yml.getString("display");
             Location spawn = yml.getLocation("spawn");
-            stages.add(new StageData(name,display,spawn));
+            ItemStack icon = yml.getItemStack("icon");
+            stages.add(new StageData(name, display, spawn, icon));
         }
     }
 
@@ -49,6 +51,7 @@ public class Config {
         yml.set("name", stage.name);
         yml.set("display", stage.display);
         yml.set("spawn", stage.spawn);
+        yml.set("icon", stage.icon);
         yml.save(folder);
     }
 }
