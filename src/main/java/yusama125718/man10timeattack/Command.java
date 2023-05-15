@@ -5,12 +5,14 @@ import org.bukkit.Material;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -46,6 +48,7 @@ public class Command implements CommandExecutor, TabCompleter {
                         sender.sendMessage("==== 全体設定 ====");
                         sender.sendMessage(prefix + " §7/mta on §rシステムをonにします");
                         sender.sendMessage(prefix + " §7/mta off §rシステムをoffにします");
+                        sender.sendMessage(prefix + " §7/mta setworld §rステージに使用するワールドを設定します");
                         sender.sendMessage(prefix + " §7/mta setlobby §r現在地をロビーのスポーン地点にします");
                         sender.sendMessage("==== ゲーム設定 ====");
                         sender.sendMessage(prefix + " §7/mta new [内部名] [名前] §r新しいコースを作ります");
@@ -80,14 +83,25 @@ public class Command implements CommandExecutor, TabCompleter {
                     sender.sendMessage(prefix + "設定しました");
                     return true;
                 }
+                else if (sender.hasPermission("mta.op") && args[0].equals("setworld")){
+                    world = ((Player) sender).getWorld().getName();
+                    mta.getConfig().set("world", world);
+                    mta.saveConfig();
+                    sender.sendMessage(prefix + "設定しました");
+                    return true;
+                }
+                else if (sender.hasPermission("mta.op") && args[0].equals("reload")){
+                    Function.LoadConfig();
+                    return true;
+                }
                 else if (args[0].equals("cansel")){
                     Player p = (Player) sender;
                     if (!p.hasMetadata("mta.stage")){
                         sender.sendMessage(prefix + "ゲーム中ではありません");
                         return true;
                     }
-                    p.getMetadata("mta.stage").clear();
-                    p.getMetadata("mta.time").clear();
+                    p.removeMetadata("mta.stage", mta);
+                    p.removeMetadata("mta.time", mta);
                     p.teleport(lobby);
                     sender.sendMessage(prefix + "中断しました");
                 }
@@ -151,7 +165,7 @@ public class Command implements CommandExecutor, TabCompleter {
                         sender.sendMessage(prefix + args[1] + "は存在しません");
                         return true;
                     }
-                    long time = LocalDateTime.now().atZone(ZoneOffset.ofHours(+9)).toEpochSecond();
+                    long time = LocalDateTime.now().atZone(ZoneOffset.ofHours(+9)).toInstant().toEpochMilli();
                     ((Player) sender).setMetadata("mta.time", new FixedMetadataValue(mta,time));
                     ((Player) sender).setMetadata("mta.stage", new FixedMetadataValue(mta,target.name));
                     ((Player) sender).teleport(target.spawn);
@@ -175,6 +189,9 @@ public class Command implements CommandExecutor, TabCompleter {
                     stages.add(content);
                     try {
                         Config.SaveYaml(content);
+                        File folder = new File(recordfile.getAbsolutePath() + File.separator + args[1] + ".yml");
+                        YamlConfiguration yml = new YamlConfiguration();
+                        yml.save(folder);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
