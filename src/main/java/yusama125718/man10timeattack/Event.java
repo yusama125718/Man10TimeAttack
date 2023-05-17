@@ -63,11 +63,45 @@ public class Event implements Listener {
             e.setCancelled(true);
             return;
         }
-        else if (45 <= e.getRawSlot() && e.getRawSlot() <= 53 || e.getRawSlot() + 45 * (page - 1) >= stages.size() - 1) {
+        else if (45 <= e.getRawSlot() && e.getRawSlot() <= 53 || e.getRawSlot() + 45 * (page - 1) >= stages.size()) {
             e.setCancelled(true);
             return;
         }
         Function.StartStage((Player) e.getWhoClicked(), stages.get(e.getRawSlot() + 45 * (page - 1)));
+        e.getWhoClicked().closeInventory();
+        e.setCancelled(true);
+    }
+
+    @EventHandler
+    public void RankGUIClick(InventoryClickEvent e) {     //メインメニュー
+        if (e.getInventory().getSize() != 54) return;
+        if (e.getCurrentItem() == null) return;
+        String title = null;
+        Component component = e.getView().title();
+        if (component instanceof TextComponent text) title = text.content();
+        if (title == null || !title.startsWith("[Man10TimeAttack] ランキング")) return;
+        if (e.getCurrentItem() == null) {
+            e.setCancelled(true);
+            return;
+        }
+        boolean isNumeric = title.substring(23).matches("-?\\d+");
+        if (!isNumeric) return;
+        int page = parseInt(title.substring(23));
+        if (51 <= e.getRawSlot() && e.getRawSlot() <= 53 && e.getCurrentItem().getType().equals(Material.BLUE_STAINED_GLASS_PANE)){    //次のページへ
+            if (stages.size() / 45 > page) GUI.OpenRankMenu((Player) e.getWhoClicked(),page + 1);
+            e.setCancelled(true);
+            return;
+        }
+        else if (45 <= e.getRawSlot() && e.getRawSlot() <= 47 && e.getCurrentItem().getType().equals(Material.RED_STAINED_GLASS_PANE)){     //前のページへ
+            if (page != 1) GUI.OpenRankMenu((Player) e.getWhoClicked(),page -1);
+            e.setCancelled(true);
+            return;
+        }
+        else if (45 <= e.getRawSlot() && e.getRawSlot() <= 53 || e.getRawSlot() + 45 * (page - 1) >= stages.size()) {
+            e.setCancelled(true);
+            return;
+        }
+        Function.SendRank((Player) e.getWhoClicked(), stages.get(e.getRawSlot() + 45 * (page - 1)), 1);
         e.getWhoClicked().closeInventory();
         e.setCancelled(true);
     }

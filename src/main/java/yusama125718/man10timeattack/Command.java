@@ -1,5 +1,7 @@
 package yusama125718.man10timeattack;
 
+import net.kyori.adventure.text.Component;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.command.CommandExecutor;
@@ -18,6 +20,8 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
 
+import static java.lang.Integer.parseInt;
+import static net.kyori.adventure.text.event.ClickEvent.runCommand;
 import static yusama125718.man10timeattack.Man10TimeAttack.*;
 
 public class Command implements CommandExecutor, TabCompleter {
@@ -43,6 +47,7 @@ public class Command implements CommandExecutor, TabCompleter {
                     sender.sendMessage(prefix + " §7/mta §rメインメニューを開きます");
                     sender.sendMessage(prefix + " §7/mta cansel §rゲームを中断し、終了します");
                     sender.sendMessage(prefix + " §7/mta record §r自分の記録を表示します");
+                    sender.sendMessage(prefix + " §7/mta record [MCID] §r他人の記録を表示します");
                     if (sender.hasPermission("mta.op")){
                         sender.sendMessage("===== 運営コマンド =====");
                         sender.sendMessage("==== 全体設定 ====");
@@ -58,6 +63,8 @@ public class Command implements CommandExecutor, TabCompleter {
                         sender.sendMessage(prefix + " §7/mta seticon [内部名] §rステージのアイコンを手に持っている物に変更します");
                         sender.sendMessage("==== ゲーム動作 ====");
                         sender.sendMessage(prefix + " §7/mta start [内部名] §rゲームを始めます");
+                        sender.sendMessage(prefix + " ※プレイヤーも実行可能");
+                        sender.sendMessage(prefix + " §7/mta ranking [内部名] [ページ]§rランキングを表示します");
                         sender.sendMessage(prefix + " ※プレイヤーも実行可能");
                     }
                     return true;
@@ -117,6 +124,10 @@ public class Command implements CommandExecutor, TabCompleter {
                         RecordData d = record.get(p).get(s);
                         sender.sendMessage(prefix + d.display + "：" + Function.GetTime(d.time));
                     }
+                    return true;
+                }
+                else if (args[0].equals("ranking")){
+                    GUI.OpenRankMenu((Player) sender, 1);
                     return true;
                 }
                 break;
@@ -186,7 +197,7 @@ public class Command implements CommandExecutor, TabCompleter {
                     sender.sendMessage(prefix + target.display + "をスタートしました。");
                     return true;
                 }
-                else if (args[1].equals("ranking")){
+                else if (args[0].equals("ranking")){
                     StageData target = null;
                     for (Man10TimeAttack.StageData s : stages) {
                         if (!s.name.equals(args[1])) continue;
@@ -197,13 +208,26 @@ public class Command implements CommandExecutor, TabCompleter {
                         sender.sendMessage(prefix + args[1] + "は存在しません");
                         return true;
                     }
-                    HashMap<UUID, Long> rank = new HashMap<>();
-                    for (UUID p : record.keySet()){
-                        if (!record.get(p).containsKey(args[2])) continue;
-                        rank.put(p, record.get(p).get(args[2]).time);
+                    Function.SendRank((Player) sender, target, 1);
+                    return true;
+                }
+                else if (args[0].equals("record")){
+                    Player player = Bukkit.getPlayerExact(args[1]);
+                    if (player == null){
+                        sender.sendMessage(prefix + "そのプレイヤーは存在しません");
+                        return true;
+                    }
+                    UUID p = player.getUniqueId();
+                    if (!record.containsKey(p)){
+                        sender.sendMessage(prefix + player.getName() + "のデータはありません");
+                        return true;
+                    }
+                    sender.sendMessage(prefix + player.getName() + "の記録");
+                    for (String s : record.get(p).keySet()){
+                        RecordData d = record.get(p).get(s);
+                        sender.sendMessage(prefix + d.display + "：" + Function.GetTime(d.time));
                     }
                     return true;
-
                 }
                 break;
 
@@ -218,7 +242,7 @@ public class Command implements CommandExecutor, TabCompleter {
                     Location spawn = ((Player) sender).getLocation();
                     ItemStack icon = ((Player) sender).getInventory().getItemInMainHand();
                     if (icon == null) icon = new ItemStack(Material.WHITE_STAINED_GLASS_PANE);
-                    StageData content = new StageData(args[1], args[2], spawn, icon);
+                    StageData content = new StageData(args[1], args[2], spawn, icon, null);
                     stages.add(content);
                     try {
                         Config.SaveYaml(content);
@@ -231,7 +255,26 @@ public class Command implements CommandExecutor, TabCompleter {
                     sender.sendMessage(prefix + "作成しました");
                     return true;
                 }
-
+                else if (args[0].equals("ranking")){
+                    boolean isNumeric = args[2].matches("-?\\d+");
+                    if (!isNumeric) {
+                        sender.sendMessage(prefix + "整数を入力してください");
+                        return true;
+                    }
+                    int page = parseInt(args[2]);
+                    StageData target = null;
+                    for (Man10TimeAttack.StageData s : stages) {
+                        if (!s.name.equals(args[1])) continue;
+                        target = s;
+                        break;
+                    }
+                    if (target == null){
+                        sender.sendMessage(prefix + args[1] + "は存在しません");
+                        return true;
+                    }
+                    Function.SendRank((Player) sender, target, page);
+                    return true;
+                }
                 break;
 
             default:

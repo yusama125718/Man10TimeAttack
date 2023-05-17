@@ -16,6 +16,9 @@ public final class Man10TimeAttack extends JavaPlugin {
     public static Boolean system;
     public static List<StageData> stages = new ArrayList<>();
     public static HashMap<UUID, HashMap<String, RecordData>> record = new HashMap<>();
+    public static HashMap<UUID, Long> stagerecord = new HashMap<>();
+    public static List<UUID> rank = new ArrayList<>();
+    public static String rankname;
     public static String prefix;
     public static String world;
     public static File configfile;
@@ -27,12 +30,14 @@ public final class Man10TimeAttack extends JavaPlugin {
         public String display;
         public Location spawn;
         public ItemStack icon;
+        public List<String> desc;
 
-        public StageData(String NAME, String DISPLAY, Location SPAWN, ItemStack ICON){
+        public StageData(String NAME, String DISPLAY, Location SPAWN, ItemStack ICON, List<String> DESC){
             name = NAME;
             display = DISPLAY;
             spawn = SPAWN;
             icon = ICON;
+            desc = DESC;
         }
     }
 

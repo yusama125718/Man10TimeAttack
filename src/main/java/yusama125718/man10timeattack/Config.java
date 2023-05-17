@@ -9,6 +9,7 @@ import org.bukkit.inventory.ItemStack;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -59,7 +60,8 @@ public class Config {
             String display = yml.getString("display");
             Location spawn = yml.getLocation("spawn");
             ItemStack icon = yml.getItemStack("icon");
-            stages.add(new StageData(name, display, spawn, icon));
+            List<String> desc = yml.getStringList("desc");
+            stages.add(new StageData(name, display, spawn, icon, desc));
         }
     }
 
@@ -70,6 +72,7 @@ public class Config {
         yml.set("display", stage.display);
         yml.set("spawn", stage.spawn);
         yml.set("icon", stage.icon);
+        yml.set("desc", stage.desc);
         yml.save(folder);
     }
 
@@ -81,6 +84,7 @@ public class Config {
             String name = filename.substring(0,filename.lastIndexOf('.'));
             String display = yml.getString("display");
             for (String s : yml.getKeys(false)){
+                if (s.equals("display")) continue;
                 Long time = yml.getLong(s);
                 UUID p = UUID.fromString(s);
                 if (record.containsKey(p)) record.get(p).put(name, new RecordData(display, time));
