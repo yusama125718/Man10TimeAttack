@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.EventListener;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
@@ -32,7 +33,7 @@ import java.util.Set;
 import static java.lang.Integer.parseInt;
 import static yusama125718.man10timeattack.Man10TimeAttack.*;
 
-public class Event {
+public class Event implements Listener {
     public Event(Man10TimeAttack plugin) {
         plugin.getServer().getPluginManager().registerEvents((Listener) this, plugin);
     }
@@ -40,6 +41,7 @@ public class Event {
     @EventHandler
     public void MenuGUIClick(InventoryClickEvent e) {     //メインメニュー
         if (e.getInventory().getSize() != 54) return;
+        if (e.getCurrentItem() == null) return;
         String title = null;
         Component component = e.getView().title();
         if (component instanceof TextComponent text) title = text.content();
@@ -48,24 +50,24 @@ public class Event {
             e.setCancelled(true);
             return;
         }
-        boolean isNumeric = title.substring(24).matches("-?\\d+");
+        boolean isNumeric = title.substring(23).matches("-?\\d+");
         if (!isNumeric) return;
-        int page = parseInt(title.substring(24));
+        int page = parseInt(title.substring(23));
         if (51 <= e.getRawSlot() && e.getRawSlot() <= 53 && e.getCurrentItem().getType().equals(Material.BLUE_STAINED_GLASS_PANE)){    //次のページへ
             if (stages.size() / 45 > page) GUI.OpenMenu((Player) e.getWhoClicked(),page + 1);
             e.setCancelled(true);
             return;
         }
-        if (45 <= e.getRawSlot() && e.getRawSlot() <= 47 && e.getCurrentItem().getType().equals(Material.RED_STAINED_GLASS_PANE)){     //前のページへ
+        else if (45 <= e.getRawSlot() && e.getRawSlot() <= 47 && e.getCurrentItem().getType().equals(Material.RED_STAINED_GLASS_PANE)){     //前のページへ
             if (page != 1) GUI.OpenMenu((Player) e.getWhoClicked(),page -1);
             e.setCancelled(true);
             return;
         }
-        if (45 <= e.getRawSlot() && e.getRawSlot() <= 53 || e.getRawSlot() + 45 * (page) >= stages.size()) {
+        else if (45 <= e.getRawSlot() && e.getRawSlot() <= 53 || e.getRawSlot() + 45 * (page - 1) >= stages.size() - 1) {
             e.setCancelled(true);
             return;
         }
-        Function.StartStage((Player) e.getWhoClicked(), stages.get(e.getRawSlot() + 45 * (page)));
+        Function.StartStage((Player) e.getWhoClicked(), stages.get(e.getRawSlot() + 45 * (page - 1)));
         e.getWhoClicked().closeInventory();
         e.setCancelled(true);
     }
@@ -95,6 +97,7 @@ public class Event {
         }
         if (target == null) return;
         long start = 0;
+        meta = e.getPlayer().getMetadata("mta.time");
         for (MetadataValue v : meta) {
             if (v.getOwningPlugin().getName().equals(mta.getName())) {
                 start = v.asLong();
@@ -102,42 +105,49 @@ public class Event {
             }
         }
         if (start == 0) return;
+        StageData s = null;
+        for (StageData stage : stages){
+            if (stage.name.equals(name)){
+                s = stage;
+                break;
+            }
+        }
+        if (s == null) return;
         long now = LocalDateTime.now().atZone(ZoneOffset.ofHours(+9)).toInstant().toEpochMilli();
         long between = now - start;
-        if (record.get(e.getPlayer().getUniqueId()).get(name) == null){
+        boolean best = false;
+        if (record.get(e.getPlayer().getUniqueId()) == null || record.get(e.getPlayer().getUniqueId()).get(name) == null){
             if (record.get(e.getPlayer().getUniqueId()) == null){
-                HashMap<String, Long> data = new HashMap<>();
-                data.put(name, between);
+                HashMap<String, RecordData> data = new HashMap<>();
+                data.put(name, new RecordData(s.display, between));
                 record.put(e.getPlayer().getUniqueId(), data);
             }
-            else record.get(e.getPlayer().getUniqueId()).put(name, between);
-            YamlConfiguration yml = YamlConfiguration.loadConfiguration(Paths.get(recordfile.getAbsolutePath() + File.pathSeparator + name + ".yml").toFile());
+            else record.get(e.getPlayer().getUniqueId()).put(name, new RecordData(s.display, between));
+            YamlConfiguration yml = YamlConfiguration.loadConfiguration(Paths.get(recordfile.getAbsolutePath() + File.separator + name + ".yml").toFile());
+            yml.set("display", s.display);
             yml.set(e.getPlayer().getUniqueId().toString(), between);
             try {
-                yml.save(recordfile.getAbsolutePath() + File.pathSeparator + name + ".yml");
+                yml.save(recordfile.getAbsolutePath() + File.separator + name + ".yml");
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
+            best = true;
         }
-        else if (between < record.get(e.getPlayer().getUniqueId()).get(name)){
-            record.get(e.getPlayer().getUniqueId()).put(name, between);
-            YamlConfiguration yml = YamlConfiguration.loadConfiguration(Paths.get(recordfile.getAbsolutePath() + File.pathSeparator + name + ".yml").toFile());
+        else if (between < record.get(e.getPlayer().getUniqueId()).get(name).time){
+            record.get(e.getPlayer().getUniqueId()).put(name, new RecordData(s.display, between));
+            YamlConfiguration yml = YamlConfiguration.loadConfiguration(Paths.get(recordfile.getAbsolutePath() + File.separator + name + ".yml").toFile());
             yml.set(e.getPlayer().getUniqueId().toString(), between);
             try {
-                yml.save(recordfile.getAbsolutePath() + File.pathSeparator + name + ".yml");
+                yml.save(recordfile.getAbsolutePath() + File.separator + name + ".yml");
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
+            best = true;
         }
-    }
-
-    @EventHandler
-    public void OnPlayerJoin(PlayerJoinEvent e){
-        Config.GetRecord(e.getPlayer().getUniqueId());
-    }
-
-    @EventHandler
-    public void OnPlayerLeft(PlayerQuitEvent e){
-        record.remove(e.getPlayer().getUniqueId());
+        e.getPlayer().removeMetadata("mta.stage",mta);
+        e.getPlayer().removeMetadata("mta.time",mta);
+        e.getPlayer().teleport(lobby);
+        e.getPlayer().sendMessage(prefix + s.display + "をクリアしました。タイムは" + Function.GetTime(between) + "です");
+        if (best) e.getPlayer().sendMessage(prefix + "自己ベストおめでとうございます。記録を保存しました。");
     }
 }

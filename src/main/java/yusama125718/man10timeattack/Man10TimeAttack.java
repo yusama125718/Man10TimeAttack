@@ -15,7 +15,7 @@ public final class Man10TimeAttack extends JavaPlugin {
     public static JavaPlugin mta;
     public static Boolean system;
     public static List<StageData> stages = new ArrayList<>();
-    public static HashMap<UUID, HashMap<String, Long>> record = new HashMap<>();
+    public static HashMap<UUID, HashMap<String, RecordData>> record = new HashMap<>();
     public static String prefix;
     public static String world;
     public static File configfile;
@@ -24,8 +24,8 @@ public final class Man10TimeAttack extends JavaPlugin {
 
     public static class StageData{
         public String name;
-        public Location spawn;
         public String display;
+        public Location spawn;
         public ItemStack icon;
 
         public StageData(String NAME, String DISPLAY, Location SPAWN, ItemStack ICON){
@@ -36,10 +36,20 @@ public final class Man10TimeAttack extends JavaPlugin {
         }
     }
 
+    public static class RecordData{
+        public String display;
+        public Long time;
+
+        public RecordData(String DISPLAY, Long TIME){
+            display = DISPLAY;
+            time = TIME;
+        }
+    }
+
     @Override
     public void onEnable() {
-        getCommand("mta").setExecutor(new Command());
         mta = this;
+        getCommand("mta").setExecutor(new Command());
         new Event(this);
         Function.LoadConfig();
     }

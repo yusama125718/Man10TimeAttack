@@ -16,8 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import static yusama125718.man10timeattack.Man10TimeAttack.*;
 
@@ -43,6 +42,7 @@ public class Command implements CommandExecutor, TabCompleter {
                 if (args[0].equals("help")){
                     sender.sendMessage(prefix + " §7/mta §rメインメニューを開きます");
                     sender.sendMessage(prefix + " §7/mta cansel §rゲームを中断し、終了します");
+                    sender.sendMessage(prefix + " §7/mta record §r自分の記録を表示します");
                     if (sender.hasPermission("mta.op")){
                         sender.sendMessage("===== 運営コマンド =====");
                         sender.sendMessage("==== 全体設定 ====");
@@ -104,6 +104,20 @@ public class Command implements CommandExecutor, TabCompleter {
                     p.removeMetadata("mta.time", mta);
                     p.teleport(lobby);
                     sender.sendMessage(prefix + "中断しました");
+                    return true;
+                }
+                else if (args[0].equals("record")){
+                    UUID p = ((Player) sender).getUniqueId();
+                    if (!record.containsKey(p)){
+                        sender.sendMessage(prefix + sender.getName() + "のデータはありません");
+                        return true;
+                    }
+                    sender.sendMessage(prefix + sender.getName() + "の記録");
+                    for (String s : record.get(p).keySet()){
+                        RecordData d = record.get(p).get(s);
+                        sender.sendMessage(prefix + d.display + "：" + Function.GetTime(d.time));
+                    }
+                    return true;
                 }
                 break;
 
@@ -172,6 +186,25 @@ public class Command implements CommandExecutor, TabCompleter {
                     sender.sendMessage(prefix + target.display + "をスタートしました。");
                     return true;
                 }
+                else if (args[1].equals("ranking")){
+                    StageData target = null;
+                    for (Man10TimeAttack.StageData s : stages) {
+                        if (!s.name.equals(args[1])) continue;
+                        target = s;
+                        break;
+                    }
+                    if (target == null){
+                        sender.sendMessage(prefix + args[1] + "は存在しません");
+                        return true;
+                    }
+                    HashMap<UUID, Long> rank = new HashMap<>();
+                    for (UUID p : record.keySet()){
+                        if (!record.get(p).containsKey(args[2])) continue;
+                        rank.put(p, record.get(p).get(args[2]).time);
+                    }
+                    return true;
+
+                }
                 break;
 
             case 3:
@@ -198,13 +231,14 @@ public class Command implements CommandExecutor, TabCompleter {
                     sender.sendMessage(prefix + "作成しました");
                     return true;
                 }
+
                 break;
 
             default:
+                sender.sendMessage(prefix + "/mta helpでコマンドを確認");
                 break;
 
         }
-        sender.sendMessage(prefix + "/mta helpでコマンドを確認");
         return true;
     }
 

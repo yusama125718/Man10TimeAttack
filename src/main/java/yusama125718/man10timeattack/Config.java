@@ -1,5 +1,6 @@
 package yusama125718.man10timeattack;
 
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -23,29 +24,29 @@ public class Config {
             for (File file : Objects.requireNonNull(mta.getDataFolder().listFiles())) {
                 if (file.getName().equals("stages")) {
                     configfile = file;
-                    return;
+                    break;
                 }
             }
         }
-        if (folder.mkdir()) {
-            Bukkit.broadcast(prefix + "§rステージフォルダを作成しました", "magri.op");
+        else if (folder.mkdir()) {
+            Bukkit.broadcast(Component.text(prefix + "§rステージフォルダを作成しました"), "magri.op");
             configfile = folder;
         } else {
-            Bukkit.broadcast(prefix + "§rステージフォルダの作成に失敗しました", "magri.op");
+            Bukkit.broadcast(Component.text(prefix + "§rステージフォルダの作成に失敗しました"), "magri.op");
         }
         if (mta.getDataFolder().listFiles() != null){
             for (File file : Objects.requireNonNull(mta.getDataFolder().listFiles())) {
                 if (file.getName().equals("records")) {
                     recordfile = file;
-                    return;
+                   return;
                 }
             }
         }
-        if (folder.mkdir()) {
-            Bukkit.broadcast(prefix + "§rデータフォルダを作成しました", "magri.op");
+        if (datafolder.mkdir()) {
+            Bukkit.broadcast(Component.text(prefix + "§rデータフォルダを作成しました"), "magri.op");
             recordfile = datafolder;
         } else {
-            Bukkit.broadcast(prefix + "§rデータフォルダの作成に失敗しました", "magri.op");
+            Bukkit.broadcast(Component.text(prefix + "§rデータフォルダの作成に失敗しました"), "magri.op");
         }
     }
 
@@ -72,16 +73,23 @@ public class Config {
         yml.save(folder);
     }
 
-    public static void GetRecord(UUID p){
-        HashMap<String, Long> data = new HashMap<>();
+    public static void GetRecord(){
         if (recordfile.listFiles() == null) return;
         for (File file : recordfile.listFiles()){
             YamlConfiguration yml =  YamlConfiguration.loadConfiguration(file);
             String filename = file.getName();
-            String name = filename.substring(0,filename.lastIndexOf('.'));;
-            Long time = yml.getLong(p.toString());
-            data.put(name, time);
+            String name = filename.substring(0,filename.lastIndexOf('.'));
+            String display = yml.getString("display");
+            for (String s : yml.getKeys(false)){
+                Long time = yml.getLong(s);
+                UUID p = UUID.fromString(s);
+                if (record.containsKey(p)) record.get(p).put(name, new RecordData(display, time));
+                else {
+                    HashMap<String, RecordData> data = new HashMap<>();
+                    data.put(name, new RecordData(display, time));
+                    record.put(p, data);
+                }
+            }
         }
-        record.put(p,data);
     }
 }

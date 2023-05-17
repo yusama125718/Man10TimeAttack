@@ -20,7 +20,7 @@ public class GUI {
         }
         for (int i = 0;i < stages.size();i++){
             if (i == 45 || stages.size() == i + 45 * (page - 1)) break;
-            Man10TimeAttack.StageData t = stages.get(i + 45 * (page));
+            Man10TimeAttack.StageData t = stages.get(i + 45 * (page - 1));
             inv.setItem(i, t.icon.clone());
         }
         p.openInventory(inv);

@@ -5,7 +5,7 @@ api-version: 1.19
 depend: [WorldGuard]
 
 commands:
-  mserial:
+  mta:
     description: Man10TimeAttack
     usage: /mta helpでコマンドを確認
 
