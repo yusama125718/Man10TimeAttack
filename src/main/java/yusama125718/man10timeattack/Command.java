@@ -11,6 +11,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.metadata.MetadataValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,6 +56,8 @@ public class Command implements CommandExecutor, TabCompleter {
                         sender.sendMessage(prefix + " §7/mta off §rシステムをoffにします");
                         sender.sendMessage(prefix + " §7/mta setworld §rステージに使用するワールドを設定します");
                         sender.sendMessage(prefix + " §7/mta setlobby §r現在地をロビーのスポーン地点にします");
+                        sender.sendMessage(prefix + " §7/mta setsaved §rリプレイをセーブをするかしないかを切り替えます");
+                        sender.sendMessage(prefix + " ※要Advanced Replay");
                         sender.sendMessage("==== ゲーム設定 ====");
                         sender.sendMessage(prefix + " §7/mta new [内部名] [名前] §r新しいコースを作ります");
                         sender.sendMessage(prefix + " ※手に持っている物がアイコンになります");
@@ -107,9 +110,28 @@ public class Command implements CommandExecutor, TabCompleter {
                         sender.sendMessage(prefix + "ゲーム中ではありません");
                         return true;
                     }
-                    p.removeMetadata("mta.stage", mta);
-                    p.removeMetadata("mta.time", mta);
                     p.teleport(lobby);
+                    if (saved){
+                        List<MetadataValue> meta = ((Player) sender).getMetadata("mta.stage");
+                        String name = null;
+                        for (MetadataValue v : meta) {
+                            if (v.getOwningPlugin().getName().equals(mta.getName())) {
+                                name = v.asString();
+                                break;
+                            }
+                        }
+                        StageData s = null;
+                        for (StageData stage : stages){
+                            if (stage.name.equals(name)){
+                                s = stage;
+                                break;
+                            }
+                        }
+                        p.removeMetadata("mta.stage", mta);
+                        p.removeMetadata("mta.time", mta);
+                        Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), "replay stop " + sender.getName() + "_" +  s.name);
+                        Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), "replay delete " + sender.getName() + "_" +  s.name);
+                    }
                     sender.sendMessage(prefix + "中断しました");
                     return true;
                 }
@@ -128,6 +150,11 @@ public class Command implements CommandExecutor, TabCompleter {
                 }
                 else if (args[0].equals("ranking")){
                     GUI.OpenRankMenu((Player) sender, 1);
+                    return true;
+                }
+                else if (args[0].equals("setsaved")){
+                    saved = !saved;
+                    sender.sendMessage(prefix + saved + "に設定しました");
                     return true;
                 }
                 break;
@@ -194,6 +221,7 @@ public class Command implements CommandExecutor, TabCompleter {
                     ((Player) sender).setMetadata("mta.time", new FixedMetadataValue(mta,time));
                     ((Player) sender).setMetadata("mta.stage", new FixedMetadataValue(mta,target.name));
                     ((Player) sender).teleport(target.spawn);
+                    if (saved) Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), "replay start " + sender.getName() + "_" +  target.name + " " + sender.getName());
                     sender.sendMessage(prefix + target.display + "をスタートしました。");
                     return true;
                 }

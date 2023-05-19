@@ -11,6 +11,7 @@ public final class Man10TimeAttack extends JavaPlugin {
 
     public static JavaPlugin mta;
     public static Boolean system;
+    public static Boolean saved;
     public static List<StageData> stages = new ArrayList<>();
     public static HashMap<UUID, HashMap<String, RecordData>> record = new HashMap<>();
     public static LinkedHashMap<UUID, Long> rank = new LinkedHashMap<>();

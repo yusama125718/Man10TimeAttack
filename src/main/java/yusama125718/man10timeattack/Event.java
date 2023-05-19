@@ -181,6 +181,10 @@ public class Event implements Listener {
         e.getPlayer().removeMetadata("mta.stage",mta);
         e.getPlayer().removeMetadata("mta.time",mta);
         e.getPlayer().teleport(lobby);
+        if (saved){
+            Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), "replay stop " + e.getPlayer().getName() + "_" +  s.name);
+            if (!best) Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), "replay delete " + e.getPlayer().getName() + "_" +  s.name);
+        }
         e.getPlayer().sendMessage(prefix + s.display + "をクリアしました。タイムは" + Function.GetTime(between) + "です");
         if (best) e.getPlayer().sendMessage(prefix + "自己ベストおめでとうございます。記録を保存しました。");
     }

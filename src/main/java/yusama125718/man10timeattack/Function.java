@@ -25,6 +25,7 @@ public class Function {
         prefix = mta.getConfig().getString("prefix");
         world = mta.getConfig().getString("world");
         lobby = mta.getConfig().getLocation("lobby");
+        saved = mta.getConfig().getBoolean("saved");
         Config.LoadFile();
         Config.LoadRecordFile();
         Config.LoadYaml();
@@ -46,6 +47,7 @@ public class Function {
         p.setMetadata("mta.time", new FixedMetadataValue(mta,time));
         p.setMetadata("mta.stage", new FixedMetadataValue(mta,t.name));
         p.teleport(t.spawn);
+        if (saved) Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), "replay start " + p.getName() + "_" +  t.name + " " + p.getName());
         p.sendMessage(prefix + t.display + "をスタートしました。");
     }
 
