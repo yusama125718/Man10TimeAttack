@@ -10,9 +10,8 @@ import org.bukkit.metadata.FixedMetadataValue;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static net.kyori.adventure.text.event.ClickEvent.runCommand;
 import static yusama125718.man10timeattack.Man10TimeAttack.*;
@@ -69,40 +68,32 @@ public class Function {
     }
 
     public static void SendRank(Player p, StageData target, Integer page){
-        if (rankname == null || !rankname.equals(target.name)){
-            rank.clear();
-            List<Long> ranktime = new ArrayList<>();
+        HashMap<UUID, Long> stagerecord = new HashMap<>();
+        if (rank == null || rankname == null || !rankname.equals(target.name)){
             for (UUID uuid : record.keySet()){
                 if (!record.get(uuid).containsKey(target.name)) continue;
                 long time = record.get(uuid).get(target.name).time;
                 stagerecord.put(uuid, time);
-                if (ranktime.size() == 0){
-                    ranktime.add(time);
-                    rank.add(uuid);
-                    continue;
-                }
-                for (int i = 0; i < ranktime.size(); i++){
-                    if (i == ranktime.size() - 1){
-                        rank.add(uuid);
-                        ranktime.add(time);
-                        break;
-                    }
-                    if (ranktime.get(i) < time) continue;
-                    rank.add(i, uuid);
-                    ranktime.add(i,time);
-                    break;
-                }
             }
             rankname = target.name;
+            rank = stagerecord.entrySet().stream()
+                    .sorted(java.util.Map.Entry.comparingByValue(Long::compareTo))
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
         }
         if (rank.size() <= (page - 1) * 10){
             p.sendMessage(prefix + "データがありません");
             return;
         }
         p.sendMessage(prefix + target.display + "のランキング " + page);
-        for (int i = 10 * (page - 1); i < 10 + 10 * (page - 1); i++){
-            if (i >= rank.size()) break;
-            p.sendMessage("§l§e" + (i + 1) + "位§r§l:§b§l" + Bukkit.getOfflinePlayer(rank.get(i)).getName() + " §e§lタイム§r§l:§c§l" + GetTime(stagerecord.get(rank.get(i))));
+        int i = 0;
+        for (UUID user : rank.keySet()){
+            if (i < (page - 1) * 10){
+                i++;
+                continue;
+            }
+            else if (i >= rank.size() || i >= page * 10) break;
+            p.sendMessage("§l§e" + (i + 1) + "位§r§l:§b§l" + Bukkit.getOfflinePlayer(user).getName() + " §e§lタイム§r§l:§c§l" + GetTime(rank.get(user)));
+            i++;
         }
         if (page != 1) p.sendMessage(Component.text(prefix + "§b前のページ").clickEvent(runCommand("/mta ranking " + target.name + " " + (page - 1))));
         p.sendMessage(Component.text(prefix + "§b次のページ").clickEvent(runCommand("/mta ranking " + target.name + " " + (page + 1))));

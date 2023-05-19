@@ -5,10 +5,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public final class Man10TimeAttack extends JavaPlugin {
 
@@ -16,8 +13,7 @@ public final class Man10TimeAttack extends JavaPlugin {
     public static Boolean system;
     public static List<StageData> stages = new ArrayList<>();
     public static HashMap<UUID, HashMap<String, RecordData>> record = new HashMap<>();
-    public static HashMap<UUID, Long> stagerecord = new HashMap<>();
-    public static List<UUID> rank = new ArrayList<>();
+    public static LinkedHashMap<UUID, Long> rank = new LinkedHashMap<>();
     public static String rankname;
     public static String prefix;
     public static String world;

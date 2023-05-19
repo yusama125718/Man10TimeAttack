@@ -45,7 +45,7 @@ public class Command implements CommandExecutor, TabCompleter {
             case 1:
                 if (args[0].equals("help")){
                     sender.sendMessage(prefix + " §7/mta §rメインメニューを開きます");
-                    sender.sendMessage(prefix + " §7/mta cansel §rゲームを中断し、終了します");
+                    sender.sendMessage(prefix + " §7/mta cancel §rゲームを中断し、終了します");
                     sender.sendMessage(prefix + " §7/mta record §r自分の記録を表示します");
                     sender.sendMessage(prefix + " §7/mta record [MCID] §r他人の記録を表示します");
                     if (sender.hasPermission("mta.op")){
@@ -101,7 +101,7 @@ public class Command implements CommandExecutor, TabCompleter {
                     Function.LoadConfig();
                     return true;
                 }
-                else if (args[0].equals("cansel")){
+                else if (args[0].equals("cancel")){
                     Player p = (Player) sender;
                     if (!p.hasMetadata("mta.stage")){
                         sender.sendMessage(prefix + "ゲーム中ではありません");
