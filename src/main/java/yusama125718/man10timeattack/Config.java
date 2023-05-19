@@ -25,21 +25,24 @@ public class Config {
             for (File file : Objects.requireNonNull(mta.getDataFolder().listFiles())) {
                 if (file.getName().equals("stages")) {
                     configfile = file;
-                    break;
+                    return;
                 }
             }
         }
-        else if (folder.mkdir()) {
+        if (folder.mkdir()) {
             Bukkit.broadcast(Component.text(prefix + "§rステージフォルダを作成しました"), "magri.op");
             configfile = folder;
         } else {
             Bukkit.broadcast(Component.text(prefix + "§rステージフォルダの作成に失敗しました"), "magri.op");
         }
+    }
+
+    public static void LoadRecordFile(){
         if (mta.getDataFolder().listFiles() != null){
             for (File file : Objects.requireNonNull(mta.getDataFolder().listFiles())) {
                 if (file.getName().equals("records")) {
                     recordfile = file;
-                   return;
+                    return;
                 }
             }
         }

@@ -27,6 +27,7 @@ public class Function {
         world = mta.getConfig().getString("world");
         lobby = mta.getConfig().getLocation("lobby");
         Config.LoadFile();
+        Config.LoadRecordFile();
         Config.LoadYaml();
         Config.GetRecord();
         Bukkit.broadcast(Component.text(prefix + "ロード完了"), "mta.op");
@@ -72,7 +73,6 @@ public class Function {
             rank.clear();
             List<Long> ranktime = new ArrayList<>();
             for (UUID uuid : record.keySet()){
-                System.out.println("aaa");
                 if (!record.get(uuid).containsKey(target.name)) continue;
                 long time = record.get(uuid).get(target.name).time;
                 stagerecord.put(uuid, time);
@@ -82,6 +82,11 @@ public class Function {
                     continue;
                 }
                 for (int i = 0; i < ranktime.size(); i++){
+                    if (i == ranktime.size() - 1){
+                        rank.add(uuid);
+                        ranktime.add(time);
+                        break;
+                    }
                     if (ranktime.get(i) < time) continue;
                     rank.add(i, uuid);
                     ranktime.add(i,time);
@@ -90,12 +95,14 @@ public class Function {
             }
             rankname = target.name;
         }
-        System.out.println(rank);
+        if (rank.size() <= (page - 1) * 10){
+            p.sendMessage(prefix + "データがありません");
+            return;
+        }
         p.sendMessage(prefix + target.display + "のランキング " + page);
         for (int i = 10 * (page - 1); i < 10 + 10 * (page - 1); i++){
-            System.out.println("iii");
             if (i >= rank.size()) break;
-            p.sendMessage("§e" + (i + 1) + "位§r:" + Bukkit.getPlayer(rank.get(i)).getName() + " タイム:" + GetTime(stagerecord.get(rank.get(i))));
+            p.sendMessage("§l§e" + (i + 1) + "位§r§l:§b§l" + Bukkit.getOfflinePlayer(rank.get(i)).getName() + " §e§lタイム§r§l:§c§l" + GetTime(stagerecord.get(rank.get(i))));
         }
         if (page != 1) p.sendMessage(Component.text(prefix + "§b前のページ").clickEvent(runCommand("/mta ranking " + target.name + " " + (page - 1))));
         p.sendMessage(Component.text(prefix + "§b次のページ").clickEvent(runCommand("/mta ranking " + target.name + " " + (page + 1))));
